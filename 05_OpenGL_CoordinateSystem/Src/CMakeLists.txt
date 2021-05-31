@@ -12,8 +12,10 @@ find_library(SOIL_LIB  SOIL.lib    ${LIBS_PATH})
 find_package( OpenGL REQUIRED )
 message ("find opengl is:  ${OPENGL_gl_LIBRARY} ")
 
-				
-ADD_EXECUTABLE(${PROJECT_NAME}   "${PROJECT_NAME}.cpp")
+set(GLSL_CODE Vertex.glsl  Fragment.glsl)
+set_source_files_properties(${GLSL_CODE} PROPERTIES HEADER_FILE_ONLY TRUE) 	
+		
+ADD_EXECUTABLE(${PROJECT_NAME}   "${PROJECT_NAME}.cpp"  ${GLSL_CODE})
 
 target_link_libraries(${PROJECT_NAME}   ${GLFW3_LIB}  ${GLEW_LIB} ${SOIL_LIB} ${OPENGL_gl_LIBRARY})
 
