@@ -14,5 +14,9 @@
 
 - 双击运行配置脚本`GenerateVsProj.bat`，会调用CMake生成`build`目录，里面有能直接运行的`*.sln`工程；
 
-**Enjoy ~**
+### 4.其他
+- ShaderClass.hpp是对shader常规重复操作的类封装,该hpp文件不需要修改,专注修改glsl代码即可;
+- 提示:工程路径没有测试中文,如果有问题可以改成英文路径
+
+ Enjoy ~
 
