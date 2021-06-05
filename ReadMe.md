@@ -13,7 +13,6 @@
 ### 3.如何使用
 
 - 双击运行配置脚本`GenerateVsProj.bat`，会调用CMake生成`build`目录，里面有能直接运行的`*.sln`工程；
-- 暂时没有把位于`Src`目录的`shader`脚本`glsl` 文件在cmake阶段添加到工程，可以手动在VS里添加(不加也不影响运行，方便修改而已 )。
 
 **Enjoy ~**
 
