@@ -13,8 +13,17 @@ uniform int textureAlpha;
 
 void main() 
 {
+    /*纹理有4种选择,下面任选一种放出来可以看到效果*/
+
+	/*效果1: 纯色的矩形*/
  	//color = vec4(1.0f,0.5f,0.2f,1.0f); 
-	//color = texture(ourTexture, TexCoord);
-	//color = texture(ourTexture, TexCoord) * vec4(ourColor, 1.0f);
-	color = mix(texture(ourTexture1,TexCoord),texture(ourTexture2,vec2(1-TexCoord.x,TexCoord.y)),textureAlpha/100.0);//0.2means 2nd texture rate
+
+	/*效果2: 加载1个纹理texture1, 一个木箱子*/
+	//color = texture(ourTexture1, TexCoord);
+
+	/*效果3: 加载1个纹理texture1,且4个vertex自带color，插值后一个彩色的木箱子*/
+	//color = texture(ourTexture1, TexCoord) * vec4(ourColor, 1.0f);
+
+	/*效果4: 加载2个纹理texture1和texture2,且纹理2的透明度可调*/
+	color = mix(texture(ourTexture1,TexCoord),texture(ourTexture2,vec2(1-TexCoord.x,TexCoord.y)),textureAlpha/100.0);//textureAlpha/100.0 means 2nd texture rate
 }
