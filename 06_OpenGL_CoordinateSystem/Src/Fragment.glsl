@@ -1,7 +1,5 @@
 #version 330 core
 
-
-in vec3 ourColor;
 in vec2 TexCoord;
 
 out vec4 color; 
@@ -21,9 +19,6 @@ void main()
 	/*效果2: 加载1个纹理texture1, 一个木箱子*/
 	//color = texture(ourTexture1, TexCoord);
 
-	/*效果3: 加载1个纹理texture1,且4个vertex自带color，插值后一个彩色的木箱子*/
-	//color = texture(ourTexture1, TexCoord) * vec4(ourColor, 1.0f);
-
-	/*效果4: 加载2个纹理texture1和texture2,且纹理2的透明度可调*/
+	/*效果3: 加载2个纹理texture1和texture2,且纹理2的透明度可调*/
 	color = mix(texture(ourTexture1,TexCoord),texture(ourTexture2,vec2(1-TexCoord.x,TexCoord.y)),textureAlpha/100.0);//textureAlpha/100.0 means 2nd texture rate
 }

@@ -36,6 +36,7 @@ GLuint CreateTextureWithImage(const char* texImagePath);
 /*透明度调节 */
 GLuint gTextureAlpha = 30;/*取值范围0~100*/
 
+
 /* 初始化窗口动作，较为固化独立，抽取成函数*/
 GLFWwindow*  InitGLWindowsAndFunction(GLuint width , GLuint height)
 {
@@ -80,8 +81,9 @@ void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
 {
     glGenVertexArrays(1, &VAO);/*创建VAO*/
     glGenBuffers(1, &VBO);/*创建VAO*/
-    glGenBuffers(1, &EBO);/*创建EBO*/
-
+    if(EBO!= GL_INVALID_VALUE){ 
+        glGenBuffers(1, &EBO);/*创建EBO*/
+    }
     /* 1. 绑定VAO, 再设置顶点属性,到解绑之前,这些上下文属性就都属于这个VAO了,避免了VBO重复执行 */
     glBindVertexArray(VAO);
 
@@ -95,8 +97,10 @@ void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
     glBufferData(GL_ARRAY_BUFFER, vertexMemSize, vertices, GL_STATIC_DRAW);
 
     /* 3. 复制我们的索引数组到一个索引缓冲中，供OpenGL使用*/
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexMemSize, indices, GL_STATIC_DRAW);
+    if (EBO != GL_INVALID_VALUE) {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexMemSize, indices, GL_STATIC_DRAW);
+    }
 	
     /* 4. 设置顶点属性指针 */
     /* 顶点属性有positon和color以及texture*/
@@ -104,19 +108,19 @@ void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
 				3,                   /*顶点属性的大小,vec3*/
 				GL_FLOAT,            /*数据类型宏*/
 				GL_FALSE,            /*是否所有数据标准化到[0,1](unsigned)或者[-1,-1](signed)*/
-				8 * sizeof(GLfloat), /*stride步长，连续的顶点属性组之间的间隔；若写0，则让openGL决定*/
+				5 * sizeof(GLfloat), /*stride步长，连续的顶点属性组之间的间隔；若写0，则让openGL决定*/
 				(GLvoid*)NULL);      /*位置数据在缓冲中起始位置的偏移量(Offset)*/
 	glEnableVertexAttribArray(0 /*position-index*/);/*上面2句设置positon */
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3*sizeof(GLfloat)));
-	glEnableVertexAttribArray(1 /*color-index*/);//这2句设置color
-	glVertexAttribPointer(2, 2/*dimesions*/, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2 /*texture-index*/);//这2句设置texture
+	glVertexAttribPointer(1, 2/*dimesions*/, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1 /*texture-index*/);//这2句设置texture
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); /* 解绑VBO,因为glVertexAttribPointer使用ok了*/
 
     /* 5. 解绑VAO */
     glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);/*解绑EBO。注意：EBO解绑不可以在VAO解绑之前*/
+    if (EBO != GL_INVALID_VALUE) {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);/*解绑EBO。注意：EBO解绑不可以在VAO解绑之前*/
+    }
 }
 
 /* 使用一张图片创建一个texture纹理, 并设置属性 */
@@ -161,28 +165,72 @@ GLuint CreateTextureWithImage(const char* texImagePath)
     return texture;
 }
 
-/*主程序：坐标系统变换 */
+/*主程序：坐标系统变换
+ * 1. 通过宏控制，画1个或者是同时10个旋转的立方体
+ * 2. 在旋转过程中，上下方向仍然可以控制表情包透明度
+ * 3. fragment-shader中有3种texture效果可以选择修改
+ */
 int main(int argc , char *argv[])
 {
+#define JUST_DRAW_ONE_CUBE 0 /* 0,1开关，表示画1个或10个立方体*/
+
     std::cout << "Starting GLFW context, OpenGL 3.3" << std::endl;
 
     const GLuint WIDTH = 800, HEIGHT = 600;
     GLFWwindow* window = InitGLWindowsAndFunction(WIDTH, HEIGHT);
 
     Shader shader("../../Src/Vertex.glsl", "../../Src/Fragment.glsl");
-	//定义三角形顶点
-	GLfloat vertices[] = {
-		//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
-			 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
-			 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
-			-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
-			-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
-	};
-    GLuint indices[] = {  // Note that we start from 0!
+	/*定义三角形顶点,每个面6个顶点(2个重复点),共36个顶点描述一个立方体*/
+    float vertices[] = {
+        /*  ---- 位置 ----    ---- 纹理 ----   */
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    };
+
+    GLuint indices[] = {  /* 其实这36个点画立方体的方式(glDrawArray+ 纹理贴图) ，不需要EBO了 */
         0, 1, 3, // First Triangle
         1, 2, 3  // Second Triangle
     };
-    GLuint VBO, VAO, EBO;
+    GLuint VBO, VAO, EBO = GL_INVALID_VALUE;
     ProcessBindAttrs(VBO, VAO, EBO, vertices, sizeof(vertices), indices, sizeof(indices));
     GLuint texture1 = CreateTextureWithImage("../../Resources/container.jpg");
     GLuint texture2 = CreateTextureWithImage("../../Resources/awesomeface.png");
@@ -190,13 +238,22 @@ int main(int argc , char *argv[])
         std::cout << "Create texture failed, please check!\n";
     }
     
-    /*MVP 变换: V-clip = M-projection * M-view * M-model * V-local */
-    glm::mat4 model(1.0), view(1.0), projection(1.0); /*初始化为单位矩阵和radians 都非常重要*/
-    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    view  = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); /*  注意，我们将矩阵向我们要进行移动场景的反向移动。*/
-    projection = glm::perspective(glm::radians(45.0f), static_cast<float>(WIDTH) / HEIGHT, 0.1f, 100.0f);
-
-
+    /* 开启深度测试 */
+    glEnable(GL_DEPTH_TEST);
+ 
+    /*准备好10 个立方体 的model*/
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f,  2.0f, -2.5f),
+        glm::vec3(1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
 	//窗口循环/事件循环
     while (!glfwWindowShouldClose(window)){
 		/* 在循环最开始：检查有没有触发什么事件（比如键盘输入、鼠标移动等） 
@@ -206,7 +263,8 @@ int main(int argc , char *argv[])
 		//渲染主体
 		/* step1: 设置底色画布*/
 		glClearColor(0.4f, 0.3f, 0.5f, 0.5F);//四个参数RGBA,范围都是[0.0,1.0]
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); /*开启深度测试后，需clear深度buffer*/
+
 		//step2: 启动Shader-program
 		shader.Use();
        
@@ -221,16 +279,36 @@ int main(int argc , char *argv[])
 		glUniform1i(glGetUniformLocation(shader.GetProgram(), "textureAlpha"), gTextureAlpha);
 
         /*step3:  传递MVP矩阵给shader*/
+            /*MVP 变换: V-clip = M-projection * M-view * M-model * V-local */
+        glm::mat4  view(1.0), projection(1.0); /*初始化为单位矩阵和radians 都非常重要*/
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); /*  注意，我们将矩阵向我们要进行移动场景的反向移动。*/
+        projection = glm::perspective(glm::radians(45.0f), static_cast<float>(WIDTH) / HEIGHT, 0.1f, 100.0f);
+
         GLint modelLoc = glGetUniformLocation(shader.GetProgram(), "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         GLint viewLoc = glGetUniformLocation(shader.GetProgram(), "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         GLint projectionLoc = glGetUniformLocation(shader.GetProgram(), "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+#if JUST_DRAW_ONE_CUBE 
+        glm::mat4 model(1.0);
+        model = glm::rotate(model, (GLfloat)glfwGetTime() * glm::radians(45.0f), glm::vec3(1.0f, 0.3f, 0.5f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+#endif
 
         /*step4: 渲染绘制*/
-		glBindVertexArray(VAO);//绑定VAO
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(VAO);/* 绑定VAO*/
+#if JUST_DRAW_ONE_CUBE  
+        glDrawArrays(GL_TRIANGLES , 0 , 36); 
+#else 
+        for (GLuint i = 0; i < 10; i++)
+        {
+            glm::mat4 model(1.0);/*注意: model 矩阵满足 先缩放后旋转最后平移 */
+            model = glm::translate(model, cubePositions[i]);
+            model = glm::rotate(model, (GLfloat)glfwGetTime()*glm::radians( 20.0f * i+10), glm::vec3(1.0f, 0.3f, 0.5f));
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+#endif
 		glBindVertexArray(0);//解绑VAO
 
 		/*渲染结束，交换显存相关的buffer，类似刷新显示功能*/
