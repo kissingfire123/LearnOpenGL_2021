@@ -1,8 +1,8 @@
 
-include_directories(../openGL_Depends/include)
+include_directories(../../openGL_Depends/include)
 include_directories(.)
 
-set(LIBS_PATH ../openGL_Depends/libs)
+set(LIBS_PATH ../../openGL_Depends/libs)
 
 
 find_library(GLFW3_LIB glfw3.lib   ${LIBS_PATH})
