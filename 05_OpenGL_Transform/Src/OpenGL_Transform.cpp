@@ -200,7 +200,7 @@ int main(int argc , char *argv[])
     if (texture1 == GL_INVALID_VALUE || texture2 == GL_INVALID_VALUE) {
         std::cout << "Create texture failed, please check!\n";
     }
-    CalcTransformMatrix(glm::vec3(1.0,2.0,1.0), glm::vec3(0.0, 0.0, 1.0),glm::radians(90.0f), glm::vec3(4.0, 4.0, 4.0) );
+  
     // Game loop
     while (!glfwWindowShouldClose(window)){
         /*在循环最开始：检查有没有触发什么事件（比如键盘输入、鼠标移动等）*/
