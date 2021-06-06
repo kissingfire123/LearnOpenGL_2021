@@ -106,7 +106,7 @@ void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
 	glEnableVertexAttribArray(0 /*position-index*/);/*上面2句设置positon */
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3*sizeof(GLfloat)));
 	glEnableVertexAttribArray(1 /*color-index*/);//这2句设置color
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2 /*texture-index*/);//这2句设置texture
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); /* 解绑VBO,因为glVertexAttribPointer使用ok了*/
