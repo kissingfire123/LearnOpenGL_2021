@@ -2,6 +2,15 @@
 
 记录学习openGL的过程,参照教程 [LearningOpenGL](https://learnopengl-cn.readthedocs.io/zh/latest/) ，各部分代码都加了自己的注释，某些细节bug也做了修复。
 
+相对于官方教程，主要做的修改与特点：
+
+- CMake搞定工程生成，不用操心环境配置；
+
+- 按照功能模块拆分函数，方便理解；
+- 关键代码加入自己的理解，中文注释；
+- 对于某些官方未注意的细节(例如初始化)等小问题做了修复；
+- 完成了官方教程的所有习题，融合到一套代码
+
 ### 2.注意事项
 
 - 当前只支持Windows系统，还请安装好`Visual Studio`；
@@ -12,7 +21,7 @@
 
 ### 3.如何使用
 
-- 双击运行配置脚本`GenerateVsProj.bat`，会调用CMake生成`build`目录，里面有能直接运行的`*.sln`工程；
+- 双击运行配置脚本`GenerateVsProj.bat`，会调用CMake生成`build`目录(生成的是32位环境的工程)，里面有能直接运行的`*.sln`工程；
 
 ### 4.其他
 - ShaderClass.hpp是对shader常规重复操作的类封装,该hpp文件不需要修改,专注修改glsl代码即可;
