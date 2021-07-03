@@ -26,6 +26,9 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 /* 控制相机运动: 并且，同时可以多个方向键生效*/
 void do_movement();
 
+/*鼠标控制yaw偏航角和pitch俯仰角*/
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+
 /*初始化窗口以及GL函数接口*/
 GLFWwindow* InitGLWindowsAndFunction(GLuint width, GLuint height);
 
@@ -264,7 +267,10 @@ int main(int argc , char *argv[])
 
 
     glm::vec3 cameraTarget= glm::vec3(0.0f, 0.0f, 0.0f);//场景原点
-  
+
+    glfwSetCursorPosCallback(window,mouse_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);/*隐藏鼠标并限制在画框内，靠ESC退出*/
+
 	//窗口循环/事件循环
     while (!glfwWindowShouldClose(window)){
 		/* 在循环最开始：检查有没有触发什么事件（比如键盘输入、鼠标移动等） 
@@ -374,4 +380,42 @@ void do_movement()
         g_cameraPos -= glm::normalize(glm::cross(g_cameraFront, g_cameraUp)) * cameraSpeed;
     if (g_keys[GLFW_KEY_D])
         g_cameraPos += glm::normalize(glm::cross(g_cameraFront, g_cameraUp)) * cameraSpeed;
+}
+
+
+/*鼠标控制yaw偏航角和pitch俯仰角*/
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    static GLfloat lastX = 400, lastY = 300;
+    static bool firstMouse = true;/*鼠标第一次进入窗口，先更新到屏幕中心,避免第一帧offset过大，画面跳动*/
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    GLfloat xoffset = xpos - lastX;
+    GLfloat yoffset = lastY - ypos;/*注意鼠标屏幕坐标的y方向是朝下的, 而xyz坐标方向的y是朝上的*/
+    lastX = xpos;
+    lastY = ypos;
+    /*可以注意到：xoffset和yoffset是有极限(800,600)的，如果sensitivity过小，发现移动幅度再大好像角度也被卡死在某个值*/
+    GLfloat sensitivity = 0.10;/*sensitivity灵敏度自己调，根据鼠标的相对移动来确定yaw和pitch*/
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    static GLfloat yaw = -90.0f;/*yaw要初始化为-90，0是指向右边，-90才是指向 -z轴，也就是从读者指向屏幕里*/
+    static GLfloat pitch = 0.0f;
+    yaw += xoffset;
+    pitch += yoffset;
+
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));/*三角函数运算，实际上就是立体经纬角做2次投影*/
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    g_cameraFront = glm::normalize(front);
 }
