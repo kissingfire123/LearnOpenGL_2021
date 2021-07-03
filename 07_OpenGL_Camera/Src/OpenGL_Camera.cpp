@@ -29,6 +29,9 @@ void do_movement();
 /*鼠标控制yaw偏航角和pitch俯仰角*/
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
+/*通过鼠标的滚轮来缩放物体*/
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
 /*初始化窗口以及GL函数接口*/
 GLFWwindow* InitGLWindowsAndFunction(GLuint width, GLuint height);
 
@@ -45,7 +48,8 @@ glm::vec3 g_cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);/*z轴是指向屏幕外�
 glm::vec3 g_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);/*摄像机的前方*/
 glm::vec3 g_cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f); /*上方向*/
 bool g_keys[1024]{false};
-GLfloat g_deltaTime = 0.0f;   // 当前帧遇上一帧的时间差
+GLfloat g_deltaTime = 0.0f;   /*当前帧和上一帧的时间差,消除硬件差距导致体验差距 */ 
+GLfloat g_aspect = 45.0f;/*鼠标滚轮改变fov，实现缩放效果*/
 
 /* 初始化窗口动作，较为固化独立，抽取成函数*/
 GLFWwindow*  InitGLWindowsAndFunction(GLuint width , GLuint height)
@@ -68,6 +72,10 @@ GLFWwindow*  InitGLWindowsAndFunction(GLuint width , GLuint height)
     glfwMakeContextCurrent(window);
     // Set the required callback functions
     glfwSetKeyCallback(window, key_callback);
+
+    glfwSetCursorPosCallback(window, mouse_callback);/*鼠标移动控制yaw和pitch*/
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);/*隐藏鼠标并限制在画框内，靠ESC退出*/
+    glfwSetScrollCallback(window, scroll_callback);/*鼠标滚轮改变fov，实现缩放*/
 
     // Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
     glewExperimental = GL_TRUE;
@@ -266,10 +274,7 @@ int main(int argc , char *argv[])
     };
 
 
-    glm::vec3 cameraTarget= glm::vec3(0.0f, 0.0f, 0.0f);//场景原点
-
-    glfwSetCursorPosCallback(window,mouse_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);/*隐藏鼠标并限制在画框内，靠ESC退出*/
+    glm::vec3 cameraTarget= glm::vec3(0.0f, 0.0f, 0.0f);/*场景原点*/
 
 	//窗口循环/事件循环
     while (!glfwWindowShouldClose(window)){
@@ -306,7 +311,7 @@ int main(int argc , char *argv[])
         glm::mat4  view(1.0), projection(1.0); /*初始化为单位矩阵和radians 都非常重要*/
         GLfloat radius = 10.0f;
         view = glm::lookAt(g_cameraPos, g_cameraPos + g_cameraFront, g_cameraUp);
-        projection = glm::perspective(glm::radians(45.0f), static_cast<float>(WIDTH) / HEIGHT, 0.1f, 100.0f);
+        projection = glm::perspective(/*glm::radians(45.0f)*/ g_aspect, static_cast<float>(WIDTH) / HEIGHT, 0.1f, 100.0f);
 
         GLint modelLoc = glGetUniformLocation(shader.GetProgram(), "model");
         GLint viewLoc = glGetUniformLocation(shader.GetProgram(), "view");
@@ -418,4 +423,16 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     front.y = sin(glm::radians(pitch));
     front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     g_cameraFront = glm::normalize(front);
+}
+
+
+/*通过鼠标的滚轮来缩放物体*/
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    if (g_aspect >= 1.0f && g_aspect <= 45.0f)
+        g_aspect -= yoffset;
+    if (g_aspect <= 1.0f)
+        g_aspect = 1.0f;
+    if (g_aspect >= 45.0f)
+        g_aspect = 45.0f;
 }
