@@ -23,6 +23,9 @@
 /* 回调函数*/
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
+/* 控制相机运动: 并且，同时可以多个方向键生效*/
+void do_movement();
+
 /*初始化窗口以及GL函数接口*/
 GLFWwindow* InitGLWindowsAndFunction(GLuint width, GLuint height);
 
@@ -35,7 +38,11 @@ GLuint CreateTextureWithImage(const char* texImagePath);
 
 /*透明度调节 */
 GLuint gTextureAlpha = 30;/*取值范围0~100*/
-
+glm::vec3 g_cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);/*z轴是指向屏幕外的你*/
+glm::vec3 g_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);/*摄像机的前方*/
+glm::vec3 g_cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f); /*上方向*/
+bool g_keys[1024]{false};
+GLfloat g_deltaTime = 0.0f;   // 当前帧遇上一帧的时间差
 
 /* 初始化窗口动作，较为固化独立，抽取成函数*/
 GLFWwindow*  InitGLWindowsAndFunction(GLuint width , GLuint height)
@@ -255,21 +262,20 @@ int main(int argc , char *argv[])
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);/*z轴是指向屏幕外的你*/
-    glm::vec3 cameraTarget= glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);/*指向摄像机*/
-    /*右轴*/
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-    /*上轴*/
-    glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
 
-
+    glm::vec3 cameraTarget= glm::vec3(0.0f, 0.0f, 0.0f);//场景原点
+  
 	//窗口循环/事件循环
     while (!glfwWindowShouldClose(window)){
 		/* 在循环最开始：检查有没有触发什么事件（比如键盘输入、鼠标移动等） 
 		 * 然后调用对应的回调函数（可以通过回调方法手动设置）*/
 		glfwPollEvents();
+        do_movement();
+        /*目的：消除硬件差异，均衡化移动速度*/
+        GLfloat currentFrame = glfwGetTime();
+        static GLfloat lastFrame = 0.0f;   /*上一帧的时间*/ 
+        g_deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
 		//渲染主体
 		/* step1: 设置底色画布*/
@@ -292,11 +298,8 @@ int main(int argc , char *argv[])
         /*step3:  传递MVP矩阵给shader*/
             /*MVP 变换: V-clip = M-projection * M-view * M-model * V-local */
         glm::mat4  view(1.0), projection(1.0); /*初始化为单位矩阵和radians 都非常重要*/
-        //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); /*  注意，我们将矩阵向我们要进行移动场景的反向移动。*/
         GLfloat radius = 10.0f;
-        GLfloat camX = sin(glfwGetTime()) * radius;
-        GLfloat camZ = cos(glfwGetTime()) * radius;
-        view = glm::lookAt(glm::vec3(camX, 0.0, camZ), cameraTarget, up);
+        view = glm::lookAt(g_cameraPos, g_cameraPos + g_cameraFront, g_cameraUp);
         projection = glm::perspective(glm::radians(45.0f), static_cast<float>(WIDTH) / HEIGHT, 0.1f, 100.0f);
 
         GLint modelLoc = glGetUniformLocation(shader.GetProgram(), "model");
@@ -345,9 +348,30 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 
+    /*控制纹理融合透明度*/
 	if (key == GLFW_KEY_UP)
 		gTextureAlpha = (gTextureAlpha < 100) ? (gTextureAlpha + 1) : gTextureAlpha;
 	if (key == GLFW_KEY_DOWN)
 		gTextureAlpha = (gTextureAlpha > 0) ? (gTextureAlpha - 1) : gTextureAlpha;
+
+    /*键盘控制,enable同一时间多键位生效*/
+    if (action == GLFW_PRESS)
+        g_keys[key] = true;
+    else if (action == GLFW_RELEASE)
+        g_keys[key] = false;
 }
 
+/* 控制相机运动: 并且，同时可以多个方向键生效*/
+void do_movement()
+{
+    // 摄像机控制
+    GLfloat cameraSpeed = 5.0f * g_deltaTime;
+    if (g_keys[GLFW_KEY_W])
+        g_cameraPos += cameraSpeed * g_cameraFront;
+    if (g_keys[GLFW_KEY_S])
+        g_cameraPos -= cameraSpeed * g_cameraFront;
+    if (g_keys[GLFW_KEY_A])
+        g_cameraPos -= glm::normalize(glm::cross(g_cameraFront, g_cameraUp)) * cameraSpeed;
+    if (g_keys[GLFW_KEY_D])
+        g_cameraPos += glm::normalize(glm::cross(g_cameraFront, g_cameraUp)) * cameraSpeed;
+}
