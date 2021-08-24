@@ -45,14 +45,14 @@ void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
 GLuint CreateTextureWithImage(const char* texImagePath);
 
 
- 
-bool g_keys[1024]{false};
-GLfloat g_deltaTime = 0.0f;   /*当前帧和上一帧的时间差,消除硬件差距导致体验差距 */ 
+
+bool g_keys[1024]{ false };
+GLfloat g_deltaTime = 0.0f;   /*当前帧和上一帧的时间差,消除硬件差距导致体验差距 */
 // Camera
 Camera  camera(glm::vec3(0.0f, 0.0f, 4.0f));
 
 /* 初始化窗口动作，较为固化独立，抽取成函数*/
-GLFWwindow*  InitGLWindowsAndFunction(GLuint width , GLuint height)
+GLFWwindow*  InitGLWindowsAndFunction(GLuint width, GLuint height)
 {
     // Init GLFW
     glfwInit();
@@ -64,7 +64,7 @@ GLFWwindow*  InitGLWindowsAndFunction(GLuint width , GLuint height)
 
     // Create a GLFWwindow object that we can use for GLFW's functions
     GLFWwindow* window = glfwCreateWindow(width, height, "LearnOpenGL", nullptr, nullptr);
-    if (window == nullptr){
+    if (window == nullptr) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return nullptr;
@@ -93,25 +93,25 @@ GLFWwindow*  InitGLWindowsAndFunction(GLuint width , GLuint height)
 }
 
 /*接收原始数据，并绑定属性到openGL上下文*/
-void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO, 
-    const GLfloat * vertices,GLuint vertexMemSize, 
-    const GLuint * indices,GLuint indexMemSize,
-	const GLuint stride)
+void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
+    const GLfloat * vertices, GLuint vertexMemSize,
+    const GLuint * indices, GLuint indexMemSize,
+    const GLuint stride)
 {
     glGenVertexArrays(1, &VAO);/*创建VAO*/
     glGenBuffers(1, &VBO);/*创建VAO*/
-    if(EBO!= GL_INVALID_VALUE){ 
+    if (EBO != GL_INVALID_VALUE) {
         glGenBuffers(1, &EBO);/*创建EBO*/
     }
     /* 1. 绑定VAO, 再设置顶点属性,到解绑之前,这些上下文属性就都属于这个VAO了,避免了VBO重复执行 */
     glBindVertexArray(VAO);
 
     /* 2. 把顶点数组复制到缓冲中供OpenGL使用 */
-	/* #注意：显卡如何管理给定的数据,有3种：
-	 *@	GL_STATIC_DRAW ：数据不会或几乎不会改变
-	 *@	GL_DYNAMIC_DRAW：数据会被改变很多
-	 *@	GL_STREAM_DRAW ：数据每次绘制时都会改变
-	 */
+    /* #注意：显卡如何管理给定的数据,有3种：
+     *@	GL_STATIC_DRAW ：数据不会或几乎不会改变
+     *@	GL_DYNAMIC_DRAW：数据会被改变很多
+     *@	GL_STREAM_DRAW ：数据每次绘制时都会改变
+     */
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertexMemSize, vertices, GL_STATIC_DRAW);
 
@@ -120,16 +120,16 @@ void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexMemSize, indices, GL_STATIC_DRAW);
     }
-	
+
     /* 4. 设置顶点属性指针 */
     /* 顶点属性有positon和color以及texture*/
-	glVertexAttribPointer(0,//顶点属性的位置值,shader中location 
-				3,                   /*顶点属性的大小,vec3*/
-				GL_FLOAT,            /*数据类型宏*/
-				GL_FALSE,            /*是否所有数据标准化到[0,1](unsigned)或者[-1,-1](signed)*/
-				stride * sizeof(GLfloat), /*stride步长，连续的顶点属性组之间的间隔；若写0，则让openGL决定*/
-				(GLvoid*)NULL);      /*位置数据在缓冲中起始位置的偏移量(Offset)*/
-	glEnableVertexAttribArray(0 /*position-index*/);/*上面2句设置positon */
+    glVertexAttribPointer(0,//顶点属性的位置值,shader中location 
+        3,                   /*顶点属性的大小,vec3*/
+        GL_FLOAT,            /*数据类型宏*/
+        GL_FALSE,            /*是否所有数据标准化到[0,1](unsigned)或者[-1,-1](signed)*/
+        stride * sizeof(GLfloat), /*stride步长，连续的顶点属性组之间的间隔；若写0，则让openGL决定*/
+        (GLvoid*)NULL);      /*位置数据在缓冲中起始位置的偏移量(Offset)*/
+    glEnableVertexAttribArray(0 /*position-index*/);/*上面2句设置positon */
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); /* 解绑VBO,因为glVertexAttribPointer使用ok了*/
 
@@ -178,7 +178,7 @@ GLuint CreateTextureWithImage(const char* texImagePath)
         image);   /*图像数据buffer */
     glGenerateMipmap(GL_TEXTURE_2D);
     SOIL_free_image_data(image);
-    
+
     return texture;
 }
 
@@ -187,7 +187,7 @@ GLuint CreateTextureWithImage(const char* texImagePath)
  * 2. 在旋转过程中，上下方向仍然可以控制表情包透明度
  * 3. fragment-shader中有3种texture效果可以选择修改
  */
-int main(int argc , char *argv[])
+int main(int argc, char *argv[])
 {
     std::cout << "Starting GLFW context, OpenGL 3.3" << std::endl;
 
@@ -195,154 +195,154 @@ int main(int argc , char *argv[])
     GLFWwindow* window = InitGLWindowsAndFunction(WIDTH, HEIGHT);
 
     Shader containerShader("../../Src/Vertex.glsl", "../../Src/Fragment.glsl");
-	Shader lightShader("../../Src/VertexLight.glsl", "../../Src/FragmentLight.glsl");
-	/*定义三角形顶点,每个面6个顶点(2个重复点),共36个顶点描述一个立方体*/
+    Shader lightShader("../../Src/VertexLight.glsl", "../../Src/FragmentLight.glsl");
+    /*定义三角形顶点,每个面6个顶点(2个重复点),共36个顶点描述一个立方体*/
     float vertices[] = {
         /*  ---- 位置 ----       */
-        -0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f, -0.5f,  
-         0.5f,  0.5f, -0.5f,  
-         0.5f,  0.5f, -0.5f,  
-        -0.5f,  0.5f, -0.5f,  
-        -0.5f, -0.5f, -0.5f,  
-							  
-        -0.5f, -0.5f,  0.5f,  
-         0.5f, -0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f,  0.5f,  
-        -0.5f, -0.5f,  0.5f,  
-							  
-        -0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f, -0.5f,  
-        -0.5f, -0.5f, -0.5f,  
-        -0.5f, -0.5f, -0.5f,  
-        -0.5f, -0.5f,  0.5f,  
-        -0.5f,  0.5f,  0.5f,  
-							  
-         0.5f,  0.5f,  0.5f,  
-         0.5f,  0.5f, -0.5f,  
-         0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-							  
-        -0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f,  0.5f,  
-         0.5f, -0.5f,  0.5f,  
-        -0.5f, -0.5f,  0.5f,  
-        -0.5f, -0.5f, -0.5f,  
-							  
-        -0.5f,  0.5f, -0.5f,  
-         0.5f,  0.5f, -0.5f,  
-         0.5f,  0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f, -0.5f,  
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
 
     };
 
-	// Light attributes
-	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+    // Light attributes
+    glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
-    GLuint VBO, containerVAO,lightVAO, EBO = GL_INVALID_VALUE;
-	ProcessBindAttrs(VBO, containerVAO, EBO, vertices, sizeof(vertices), nullptr, 0,3);
-	ProcessBindAttrs(VBO, lightVAO, EBO, vertices, sizeof(vertices), nullptr, 0,3);
+    GLuint VBO, containerVAO, lightVAO, EBO = GL_INVALID_VALUE;
+    ProcessBindAttrs(VBO, containerVAO, EBO, vertices, sizeof(vertices), nullptr, 0, 3);
+    ProcessBindAttrs(VBO, lightVAO, EBO, vertices, sizeof(vertices), nullptr, 0, 3);
 
     /* 开启深度测试 */
     glEnable(GL_DEPTH_TEST);
- 
 
-	//窗口循环/事件循环
-    while (!glfwWindowShouldClose(window)){
-		/* 在循环最开始：检查有没有触发什么事件（比如键盘输入、鼠标移动等） 
-		 * 然后调用对应的回调函数（可以通过回调方法手动设置）*/
-		glfwPollEvents();
+
+    //窗口循环/事件循环
+    while (!glfwWindowShouldClose(window)) {
+        /* 在循环最开始：检查有没有触发什么事件（比如键盘输入、鼠标移动等）
+         * 然后调用对应的回调函数（可以通过回调方法手动设置）*/
+        glfwPollEvents();
         do_movement();
         /*目的：消除硬件差异，均衡化移动速度*/
         GLfloat currentFrame = glfwGetTime();
-        static GLfloat lastFrame = 0.0f;   /*上一帧的时间*/ 
+        static GLfloat lastFrame = 0.0f;   /*上一帧的时间*/
         g_deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-		//渲染主体
-		/* step1: 设置底色画布*/
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);//四个参数RGBA,范围都是[0.0,1.0]
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); /*开启深度测试后，需clear深度buffer*/
+        //渲染主体
+        /* step1: 设置底色画布*/
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);//四个参数RGBA,范围都是[0.0,1.0]
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); /*开启深度测试后，需clear深度buffer*/
 
-		//step2: 启动Shader-program
-		containerShader.Use();
-		GLint objectColorLoc = glGetUniformLocation(containerShader.GetProgram(), "objectColor");
-		GLint lightColorLoc  = glGetUniformLocation(containerShader.GetProgram(), "lightColor");
-		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); // 物体rgb颜色
-		glUniform3f(lightColorLoc , 1.0f, 1.0f, 1.0f);  // 光照rgb颜色
-   
+        //step2: 启动Shader-program
+        containerShader.Use();
+        GLint objectColorLoc = glGetUniformLocation(containerShader.GetProgram(), "objectColor");
+        GLint lightColorLoc = glGetUniformLocation(containerShader.GetProgram(), "lightColor");
+        glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); // 物体rgb颜色
+        glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);  // 光照rgb颜色
+
         /*step3:  传递MVP矩阵给shader*/
         /*MVP 变换: V-clip = M-projection * M-view * M-model * V-local */
         glm::mat4  view(1.0), projection(1.0); /*初始化为单位矩阵和radians 都非常重要*/
-		view = camera.GetViewMatrix();
+        view = camera.GetViewMatrix();
         projection = glm::perspective(camera.GetZoom(), static_cast<GLfloat>(WIDTH) / HEIGHT, 0.1f, 100.0f);
 
         GLint modelLoc = glGetUniformLocation(containerShader.GetProgram(), "model");
-        GLint viewLoc  = glGetUniformLocation(containerShader.GetProgram(), "view");
-        GLint projLoc  = glGetUniformLocation(containerShader.GetProgram(), "projection");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        GLint viewLoc = glGetUniformLocation(containerShader.GetProgram(), "view");
+        GLint projLoc = glGetUniformLocation(containerShader.GetProgram(), "projection");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         /*step4: 渲染绘制*/
-		glBindVertexArray(containerVAO);/* 绑定VAO*/
-        glm::mat4 model(1.0); 
- 
+        glBindVertexArray(containerVAO);/* 绑定VAO*/
+        glm::mat4 model(1.0);
+
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);//解绑VAO
+        glBindVertexArray(0);//解绑VAO
 // ====================== 以上为container，下述为light
-		lightShader.Use();
-		modelLoc = glGetUniformLocation(lightShader.GetProgram(), "model");
-		viewLoc  = glGetUniformLocation(lightShader.GetProgram(), "view");
-		projLoc  = glGetUniformLocation(lightShader.GetProgram(), "projection");
-		
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));	
-		// Draw the light object (using light's vertex attributes)
-		glBindVertexArray(lightVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
+        lightShader.Use();
+        modelLoc = glGetUniformLocation(lightShader.GetProgram(), "model");
+        viewLoc = glGetUniformLocation(lightShader.GetProgram(), "view");
+        projLoc = glGetUniformLocation(lightShader.GetProgram(), "projection");
+
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(0.2f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        // Draw the light object (using light's vertex attributes)
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
 
 
-		/*渲染结束，交换显存相关的buffer，类似刷新显示功能*/
-		glfwSwapBuffers(window);
-	}
+        /*渲染结束，交换显存相关的buffer，类似刷新显示功能*/
+        glfwSwapBuffers(window);
+    }
 
-	/* 关闭glfw窗口后清除对应的资源*/
+    /* 关闭glfw窗口后清除对应的资源*/
     glDeleteVertexArrays(1, &containerVAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
-	glfwTerminate();
-	return 0;
+    glfwTerminate();
+    return 0;
 }
 
 
 /*简单功能：按下"ESC"按键退出窗口,且方向键可以控制texture2的透明度*/
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE);
 
 
 
     /*键盘控制,enable同一时间多键位生效*/
-	if (key >= 0 && key < 1024) {
-		if (action == GLFW_PRESS)
-			g_keys[key] = true;
-		else if (action == GLFW_RELEASE)
-			g_keys[key] = false;
-	}
+    if (key >= 0 && key < 1024) {
+        if (action == GLFW_PRESS)
+            g_keys[key] = true;
+        else if (action == GLFW_RELEASE)
+            g_keys[key] = false;
+    }
 }
 
 /* 控制相机运动: 并且，同时可以多个方向键生效*/
@@ -350,15 +350,15 @@ void do_movement()
 {
     // 摄像机控制
     //GLfloat cameraSpeed = 5.0f * g_deltaTime;
-	if (g_keys[GLFW_KEY_W])
-		camera.ProcessKeyboard(Camera_Movement::FORWARD, g_deltaTime);
-        //g_cameraPos += cameraSpeed * g_cameraFront;
-	if (g_keys[GLFW_KEY_S])
-		camera.ProcessKeyboard(Camera_Movement::BACKWARD, g_deltaTime);
+    if (g_keys[GLFW_KEY_W])
+        camera.ProcessKeyboard(Camera_Movement::FORWARD, g_deltaTime);
+    //g_cameraPos += cameraSpeed * g_cameraFront;
+    if (g_keys[GLFW_KEY_S])
+        camera.ProcessKeyboard(Camera_Movement::BACKWARD, g_deltaTime);
     if (g_keys[GLFW_KEY_A])
-		camera.ProcessKeyboard(Camera_Movement::LEFT, g_deltaTime);
+        camera.ProcessKeyboard(Camera_Movement::LEFT, g_deltaTime);
     if (g_keys[GLFW_KEY_D])
-		camera.ProcessKeyboard(Camera_Movement::RIGHT, g_deltaTime);
+        camera.ProcessKeyboard(Camera_Movement::RIGHT, g_deltaTime);
 }
 
 
@@ -377,12 +377,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     GLfloat yoffset = lastY - ypos;/*注意鼠标屏幕坐标的y方向是朝下的, 而xyz坐标方向的y是朝上的*/
     lastX = xpos;
     lastY = ypos;
-	camera.ProcessMouseMovement(xoffset, yoffset);
+    camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 
 /*通过鼠标的滚轮来缩放物体*/
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	camera.ProcessMouseScroll(yoffset);
+    camera.ProcessMouseScroll(yoffset);
 }
