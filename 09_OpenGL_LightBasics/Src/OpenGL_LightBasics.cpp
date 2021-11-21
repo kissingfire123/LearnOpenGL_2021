@@ -38,8 +38,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 GLFWwindow* InitGLWindowsAndFunction(GLuint width, GLuint height);
 
 /*接收原始数据，并绑定属性到openGL上下文*/
-void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
-    const GLfloat* vertices, GLuint vertexMemSize, const GLuint* indices, GLuint indexMemSize);
+void ProcessBindAttrs(GLuint& VBO, GLuint& containerVAO, GLuint& lightVAO,
+    const GLfloat * vertices, GLuint vertexMemSize,GLuint indexMemSize,const GLuint stride);
 
 /* 使用一张图片创建一个texture纹理, 并设置属性 */
 GLuint CreateTextureWithImage(const char* texImagePath);
@@ -93,18 +93,15 @@ GLFWwindow*  InitGLWindowsAndFunction(GLuint width, GLuint height)
 }
 
 /*接收原始数据，并绑定属性到openGL上下文*/
-void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
-    const GLfloat * vertices, GLuint vertexMemSize,
-    const GLuint * indices, GLuint indexMemSize,
+void ProcessBindAttrs(GLuint& VBO, GLuint& containerVAO, GLuint& lightVAO,
+    const GLfloat * vertices, GLuint vertexMemSize, GLuint indexMemSize,
     const GLuint stride)
 {
-    glGenVertexArrays(1, &VAO);/*创建VAO*/
-    glGenBuffers(1, &VBO);/*创建VAO*/
-    if (EBO != GL_INVALID_VALUE) {
-        glGenBuffers(1, &EBO);/*创建EBO*/
-    }
-    /* 1. 绑定VAO, 再设置顶点属性,到解绑之前,这些上下文属性就都属于这个VAO了,避免了VBO重复执行 */
-    glBindVertexArray(VAO);
+    glGenVertexArrays(1, &containerVAO);/*创建containerVAO*/
+    glGenBuffers(1, &VBO);/*创建VBO*/
+  
+    /* 1. 绑定containerVAO, 再设置顶点属性,到解绑之前,这些上下文属性就都属于这个VAO了,避免了VBO重复执行 */
+    glBindVertexArray(containerVAO);
 
     /* 2. 把顶点数组复制到缓冲中供OpenGL使用 */
     /* #注意：显卡如何管理给定的数据,有3种：
@@ -115,13 +112,7 @@ void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertexMemSize, vertices, GL_STATIC_DRAW);
 
-    /* 3. 复制我们的索引数组到一个索引缓冲中，供OpenGL使用*/
-    if (EBO != GL_INVALID_VALUE) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexMemSize, indices, GL_STATIC_DRAW);
-    }
-
-    /* 4. 设置顶点属性指针 */
+    /* 3. 设置顶点属性指针 */
     /* 顶点属性有positon和color以及texture*/
     glVertexAttribPointer(0,//顶点属性的位置值,shader中location 
         3,                   /*顶点属性的大小,vec3*/
@@ -131,14 +122,19 @@ void ProcessBindAttrs(GLuint& VBO, GLuint& VAO, GLuint& EBO,
         (GLvoid*)NULL);      /*位置数据在缓冲中起始位置的偏移量(Offset)*/
     glEnableVertexAttribArray(0 /*position-index*/);/*上面2句设置positon */
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride * sizeof(GLfloat), (GLvoid*)( 3 * sizeof(GLfloat)));//法线
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(1/*normal-index*/);
     glBindBuffer(GL_ARRAY_BUFFER, 0); /* 解绑VBO,因为glVertexAttribPointer使用ok了*/
 
-    /* 5. 解绑VAO */
+    /* 5. 解绑containerVAO */
     glBindVertexArray(0);
-    if (EBO != GL_INVALID_VALUE) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);/*解绑EBO。注意：EBO解绑不可以在VAO解绑之前*/
-    }
+
+    // 然后设置灯的 lightVAO (VBO 是一样的)
+    glGenVertexArrays(1, &lightVAO);/*创建containerVAO*/
+    glBindVertexArray(lightVAO);
+    glBindBuffer(GL_ARRAY_BUFFER,VBO);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,stride *sizeof(GLfloat), (GLvoid*)NULL);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
 }
 
 /* 使用一张图片创建一个texture纹理, 并设置属性 */
@@ -246,13 +242,13 @@ int main(int argc, char *argv[])
     // Light attributes
     glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
-    GLuint VBO, containerVAO, lightVAO, EBO = GL_INVALID_VALUE;
-    ProcessBindAttrs(VBO, containerVAO, EBO, vertices, sizeof(vertices), nullptr, 0, 3);
-    ProcessBindAttrs(VBO, lightVAO, EBO, vertices, sizeof(vertices), nullptr, 0, 3);
-
+    GLuint VBO , containerVAO , lightVAO;
+    GLuint EBO = GL_INVALID_VALUE;
+    //why stride=6: 3 vertex-positon,and 3 vertex-normal
+    ProcessBindAttrs(VBO, containerVAO, lightVAO, vertices, sizeof(vertices), 0, 6);
+   
     /* 开启深度测试 */
     glEnable(GL_DEPTH_TEST);
-
 
     //窗口循环/事件循环
     while (!glfwWindowShouldClose(window)) {
