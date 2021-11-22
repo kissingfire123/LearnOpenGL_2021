@@ -1,10 +1,12 @@
-﻿/* OpenGL_Camra.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。 */
+/* OpenGL_Camra.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。 */
 /* 基于openGL_CoordinateSystem的基础加入摄像机*/
 #include <iostream>
 #include <iomanip>
 
 /*引入GLEW*/
+#ifndef GLEW_STATIC
 #define GLEW_STATIC
+#endif
 #include <GLEW/glew.h>
 
 /*引入GLFW*/
@@ -46,7 +48,7 @@ GLuint CreateTextureWithImage(const char* texImagePath);
 
 
 
-bool g_keys[1024]{ false };
+std::vector<bool> g_keys(1024,false);
 GLfloat g_deltaTime = 0.0f;   /*当前帧和上一帧的时间差,消除硬件差距导致体验差距 */
 // Camera
 Camera  camera(glm::vec3(0.0f, 0.0f, 4.0f));
