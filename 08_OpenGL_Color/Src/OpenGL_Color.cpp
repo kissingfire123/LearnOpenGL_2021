@@ -4,8 +4,10 @@
 #include <iomanip>
 
 /*引入GLEW*/
+#ifndef GLEW_STATIC
 #define GLEW_STATIC
-#include <GLEW/glew.h>
+#endif
+#include <GL/glew.h>
 
 /*引入GLFW*/
 #include <GLFW/glfw3.h>
