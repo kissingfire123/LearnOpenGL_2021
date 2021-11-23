@@ -1,4 +1,4 @@
-﻿/* OpenGL_Camra.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。 */
+/* OpenGL_Camra.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。 */
 /* 基于openGL_CoordinateSystem的基础加入摄像机*/
 #include <iostream>
 #include <iomanip>
@@ -48,7 +48,7 @@ GLuint CreateTextureWithImage(const char* texImagePath);
 
 
 
-bool g_keys[1024]{ false };
+std::vector<bool> g_keys(1024,false);
 GLfloat g_deltaTime = 0.0f;   /*当前帧和上一帧的时间差,消除硬件差距导致体验差距 */
 // Camera
 Camera  camera(glm::vec3(0.0f, 0.0f, 4.0f));
@@ -195,9 +195,13 @@ int main(int argc, char *argv[])
 
     const GLuint WIDTH = 800, HEIGHT = 600;
     GLFWwindow* window = InitGLWindowsAndFunction(WIDTH, HEIGHT);
-
+#if WIN32 //the current dir of Vs and xcode are different,vs is beside *.sln,xcode is in Debug/Release
     Shader containerShader("../../Src/Vertex.glsl", "../../Src/Fragment.glsl");
     Shader lightShader("../../Src/VertexLight.glsl", "../../Src/FragmentLight.glsl");
+#else
+    Shader containerShader("../../../Src/Vertex.glsl", "../../../Src/Fragment.glsl");
+    Shader lightShader("../../../Src/VertexLight.glsl", "../../../Src/FragmentLight.glsl");
+#endif
     /*定义三角形顶点,每个面6个顶点(2个重复点),共36个顶点描述一个立方体*/
     float vertices[] = {
         /*  ---- 位置 ----       */

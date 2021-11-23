@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include <GL/glew.h>
+#include <cassert>
 
 class Shader
 {
@@ -40,6 +41,8 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 		/*打开文件*/
 		vShaderFile.open(vertexPath);
 		fShaderFile.open(fragmentPath);
+        assert(vShaderFile.good());// make sure the file exist
+        assert(fShaderFile.good());
 		std::stringstream vShaderStream, fShaderStream;
 		/*读取文件的缓冲内容到流中*/
 		vShaderStream << vShaderFile.rdbuf();
