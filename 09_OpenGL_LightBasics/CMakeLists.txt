@@ -17,6 +17,7 @@ if(APPLE)
 endif(APPLE)
 
 ADD_SUBDIRECTORY(Src)
+ADD_SUBDIRECTORY(../Dependency/glm    ${CMAKE_BINARY_DIR}/Dependency/glm)
 ADD_SUBDIRECTORY(../Dependency/glfw-3.3     ${CMAKE_BINARY_DIR}/Dependency/glfw)
 ADD_SUBDIRECTORY(../Dependency/soil-0.1.1   ${CMAKE_BINARY_DIR}/Dependency/SOIL)
 ADD_SUBDIRECTORY(../Dependency/glew-2.0.0/build/cmake  ${CMAKE_BINARY_DIR}/Dependency/glew)

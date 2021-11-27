@@ -14,5 +14,4 @@ ADD_EXECUTABLE(${PROJECT_NAME}   "${PROJECT_NAME}.cpp"  ShaderClass.hpp  CameraC
 target_link_libraries(${PROJECT_NAME}  glfw  glew_s glm_static  SOIL ${OPENGL_gl_LIBRARY})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-                        $<TARGET_PROPERTY:glew_s,INCLUDE_DIRECTORIES>
-                        $<TARGET_PROPERTY:SOIL,INCLUDE_DIRECTORIES>)
+                        $<TARGET_PROPERTY:glew_s,INCLUDE_DIRECTORIES>)

@@ -1,4 +1,4 @@
-/* OpenGL_Camra.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。 */
+﻿/* OpenGL_Camra.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。 */
 /* 基于openGL_CoordinateSystem的基础加入摄像机*/
 #include <iostream>
 #include <iomanip>

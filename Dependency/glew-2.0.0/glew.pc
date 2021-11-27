@@ -1,6 +1,6 @@
-prefix=C:/Program Files (x86)/OpenGL_Color
+prefix=C:/Program Files (x86)/OpenGL_LightBasics
 exec_prefix=${prefix}
-libdir=C:/Program Files (x86)/OpenGL_Color/lib
+libdir=C:/Program Files (x86)/OpenGL_LightBasics/lib
 includedir=${prefix}/include
 
 Name: glew

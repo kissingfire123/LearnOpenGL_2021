@@ -1,4 +1,4 @@
-/* OpenGL_Camra.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。 */
+﻿/* OpenGL_Camra.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。 */
 /* 基于openGL_CoordinateSystem的基础加入摄像机*/
 #include <iostream>
 #include <iomanip>
@@ -7,7 +7,7 @@
 #ifndef GLEW_STATIC
 #define GLEW_STATIC
 #endif
-#include <GLEW/glew.h>
+#include <GL/glew.h>
 
 /*引入GLFW*/
 #include <GLFW/glfw3.h>
