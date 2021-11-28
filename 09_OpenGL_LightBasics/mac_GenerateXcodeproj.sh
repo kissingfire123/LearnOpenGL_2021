@@ -12,6 +12,7 @@ cmake  -G Xcode  \
     -DBUILD_SHARED_LIBS=OFF  \
     -DGLFW_LIBRARY_TYPE=STATIC \
     -DGLFW_BUILD_DOCS=OFF \
+	-DBUILD_UTILS=OFF \
     ..
 popd ${build_dir}
 

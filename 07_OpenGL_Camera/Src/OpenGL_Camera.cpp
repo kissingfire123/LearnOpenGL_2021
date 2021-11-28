@@ -2,6 +2,7 @@
 /* 基于openGL_CoordinateSystem的基础加入摄像机*/
 #include <iostream>
 #include <iomanip>
+#include <vector>
 
 /*引入GLEW*/
 #define GLEW_STATIC
@@ -47,7 +48,7 @@ GLuint gTextureAlpha = 30;/*取值范围0~100*/
 glm::vec3 g_cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);/*z轴是指向屏幕外的你*/
 glm::vec3 g_cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);/*摄像机的前方*/
 glm::vec3 g_cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f); /*上方向*/
-bool g_keys[1024]{false};
+std::vector<bool> g_keys(1024,false);
 GLfloat g_deltaTime = 0.0f;   /*当前帧和上一帧的时间差,消除硬件差距导致体验差距 */ 
 GLfloat g_aspect = 45.0f;/*鼠标滚轮改变fov，实现缩放效果*/
 
@@ -253,8 +254,13 @@ int main(int argc , char *argv[])
     };
     GLuint VBO, VAO, EBO = GL_INVALID_VALUE;
     ProcessBindAttrs(VBO, VAO, EBO, vertices, sizeof(vertices), indices, sizeof(indices));
+#if WIN32
     GLuint texture1 = CreateTextureWithImage("../../Resources/container.jpg");
     GLuint texture2 = CreateTextureWithImage("../../Resources/awesomeface.png");
+#else
+    GLuint texture1 = CreateTextureWithImage("../../../Resources/container.jpg");
+    GLuint texture2 = CreateTextureWithImage("../../../Resources/awesomeface.png");
+#endif
     if (texture1 == GL_INVALID_VALUE || texture2 == GL_INVALID_VALUE) {
         std::cout << "Create texture failed, please check!\n";
     }

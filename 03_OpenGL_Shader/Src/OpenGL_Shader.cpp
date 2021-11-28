@@ -1,5 +1,6 @@
 /*使用EBO，绘制了个平行四边形，每个顶点颜色不一*/
 #include <iostream>
+#include <cmath>
 
 /*注意：所有中文注释的位置都尽量用这种注释，避免不同系统间的行尾CRLF转换带来bug*/
 

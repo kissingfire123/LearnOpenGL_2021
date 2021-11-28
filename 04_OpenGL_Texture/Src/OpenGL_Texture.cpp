@@ -185,9 +185,13 @@ int main(int argc , char *argv[])
     };
     GLuint VBO, VAO, EBO;
     ProcessBindAttrs(VBO, VAO, EBO, vertices, sizeof(vertices), indices, sizeof(indices));
-
+#if WIN32
     GLuint texture1 = CreateTextureWithImage("../../Resources/container.jpg");
     GLuint texture2 = CreateTextureWithImage("../../Resources/husky.jpg");
+#else
+    GLuint texture1 = CreateTextureWithImage("../../../Resources/container.jpg");
+    GLuint texture2 = CreateTextureWithImage("../../../Resources/husky.jpg");
+#endif
     if (texture1 == GL_INVALID_VALUE || texture2 == GL_INVALID_VALUE) {
         std::cout << "Create texture failed, please check!\n";
     }

@@ -192,9 +192,13 @@ int main(int argc, char *argv[])
 
     const GLuint WIDTH = 800, HEIGHT = 600;
     GLFWwindow* window = InitGLWindowsAndFunction(WIDTH, HEIGHT);
-
+#if WIN32
     Shader containerShader("../../Src/Vertex.glsl", "../../Src/Fragment.glsl");
     Shader lightShader("../../Src/VertexLight.glsl", "../../Src/FragmentLight.glsl");
+#else
+    Shader containerShader("../../../Src/Vertex.glsl", "../../../Src/Fragment.glsl");
+    Shader lightShader("../../../Src/VertexLight.glsl", "../../../Src/FragmentLight.glsl");
+#endif
     /*定义三角形顶点,每个面6个顶点(2个重复点),共36个顶点描述一个立方体*/
     float vertices[] = {
     //     位置position     // 法线 normal
