@@ -5,7 +5,7 @@
 
 //引入GLEW
 #define GLEW_STATIC
-#include <GLEW/glew.h>
+#include <GL/glew.h>
 
 //引入GLFW
 #include <GLFW/glfw3.h>
@@ -178,8 +178,12 @@ int main(int argc , char *argv[])
 
     const GLuint WIDTH = 800, HEIGHT = 600;
     GLFWwindow* window = InitGLWindowsAndFunction(WIDTH, HEIGHT);
-
+#if WIN32
     Shader shader("../../Src/Vertex.glsl", "../../Src/Fragment.glsl");
+#else
+    Shader shader("../../../Src/Vertex.glsl", "../../../Src/Fragment.glsl");
+
+#endif
 	/*定义三角形顶点,每个面6个顶点(2个重复点),共36个顶点描述一个立方体*/
     float vertices[] = {
         /*  ---- 位置 ----    ---- 纹理 ----   */

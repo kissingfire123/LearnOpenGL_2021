@@ -5,7 +5,7 @@
 
 /*GLEW 必须在glfw前面*/
 #define GLEW_STATIC
-#include <GLEW/glew.h>
+#include <GL/glew.h>
 
 /*GLFW 第三方UI窗口库*/
 #include <GLFW/glfw3.h>
@@ -165,9 +165,11 @@ int main(int argc , char *argv[])
 
     const GLuint WIDTH = 800, HEIGHT = 600;
     GLFWwindow* window = InitGLWindowsAndFunction(WIDTH, HEIGHT);
-
+#if WIN32
     Shader shader("../../Src/Vertex.glsl", "../../Src/Fragment.glsl");
-
+#else
+    Shader shader("../../../Src/Vertex.glsl", "../../../Src/Fragment.glsl");
+#endif
     // Set up vertex data (and buffer(s)) and attribute pointers
     GLfloat vertices[] = {
 		//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -

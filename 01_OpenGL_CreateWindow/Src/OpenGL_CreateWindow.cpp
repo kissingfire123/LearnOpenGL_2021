@@ -4,7 +4,7 @@
 
 /*GLEW 必须在glfw前面*/
 #define GLEW_STATIC
-#include <GLEW/glew.h>
+#include <GL/glew.h>
 
 /*GLFW 第三方UI窗口库*/
 #include <GLFW/glfw3.h>
