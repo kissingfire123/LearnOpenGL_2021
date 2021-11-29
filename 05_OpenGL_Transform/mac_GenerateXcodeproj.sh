@@ -8,6 +8,7 @@ mkdir ${build_dir}
 pushd ${build_dir}
 echo Then start cmake configure...
 cmake  -G Xcode  \
+	-DCMAKE_CXX_FLAGS="-std=c++11"  \
 	-DBUILD_STATIC_LIBS=ON  \
     -DBUILD_SHARED_LIBS=OFF  \
     -DGLFW_LIBRARY_TYPE=STATIC \

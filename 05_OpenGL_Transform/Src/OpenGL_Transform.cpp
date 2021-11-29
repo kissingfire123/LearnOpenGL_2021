@@ -2,6 +2,7 @@
 /*在opengl_texture的工程基础上添加变换*/
 #include <iostream>
 #include <iomanip>
+#include <string>
 
 /*注意：所有中文注释的位置都尽量用这种注释，避免不同系统间的行尾CRLF转换带来bug*/
 
@@ -196,9 +197,13 @@ int main(int argc , char *argv[])
     };
     GLuint VBO, VAO, EBO;
     ProcessBindAttrs(VBO, VAO, EBO, vertices, sizeof(vertices), indices, sizeof(indices));
-
+#if WIN32
     GLuint texture1 = CreateTextureWithImage("../../Resources/container.jpg");
     GLuint texture2 = CreateTextureWithImage("../../Resources/husky.jpg");
+#else
+    GLuint texture1 = CreateTextureWithImage("../../../Resources/container.jpg");
+    GLuint texture2 = CreateTextureWithImage("../../../Resources/husky.jpg");
+#endif
     if (texture1 == GL_INVALID_VALUE || texture2 == GL_INVALID_VALUE) {
         std::cout << "Create texture failed, please check!\n";
     }
@@ -274,7 +279,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 glm::mat4 CalcTransformMatrix(glm::vec3 translate, glm::vec3 rotateAxis, float rotateAngle, glm::vec3 scale)
 {
     glm::mat4 trans(1.0);/*初始化为单位矩阵非常重要*/
-    auto printMat4 = [=](std::string printTip, glm::mat4 trans) {
+    auto printMat4 = [=](std::string printTip,glm::mat4 trans) {
         std::cout << printTip << std::fixed;
         for (int r = 0; r < 4; ++r) {
             for (int c = 0; c < 4; ++c) {
