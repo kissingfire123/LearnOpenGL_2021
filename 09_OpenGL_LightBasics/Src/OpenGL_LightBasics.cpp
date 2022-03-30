@@ -43,8 +43,6 @@ GLFWwindow* InitGLWindowsAndFunction(GLuint width, GLuint height);
 void ProcessBindAttrs(GLuint& VBO, GLuint& containerVAO, GLuint& lightVAO,
     const GLfloat * vertices, GLuint vertexMemSize,GLuint indexMemSize,const GLuint stride);
 
-/* 使用一张图片创建一个texture纹理, 并设置属性 */
-GLuint CreateTextureWithImage(const char* texImagePath);
 
 
 
@@ -139,47 +137,7 @@ void ProcessBindAttrs(GLuint& VBO, GLuint& containerVAO, GLuint& lightVAO,
     glBindVertexArray(0);
 }
 
-/* 使用一张图片创建一个texture纹理, 并设置属性 */
-GLuint CreateTextureWithImage(const char* texImagePath)
-{
-    /*有关纹理1的设置*/
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
 
-    /*设置纹理1的环绕方式:GL_REPEAT|GL_MIRRORED_REPEAT|GL_CLAMP_TO_EDGE|GL_CLAMP_TO_BORDER*/
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-
-    /*设置纹理1过滤(纹理和物体大小不匹配:放大(Magnify)和缩小的时候可以设置纹理过滤选项)*/
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    /*设置多级渐远纹理1 Mipmap(原纹理的1/4,1/16,1/64...来适配远近纹理)*/
-    /*生成mipmap: glGenerateMipmaps,只有缩小纹理过滤才能mipmap*/
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-    /*使用SOIL库(Simple OpenGL Image Library)加载和创建纹理*/
-    int texWidth, texHeight;
-    unsigned char* image = SOIL_load_image(texImagePath, &texWidth, &texHeight, 0, SOIL_LOAD_RGB);
-    if (!image) {
-        std::cout << "Can't load this picture:" << texImagePath << " ,please check!\n";
-        return GL_INVALID_VALUE;
-    }
-    glTexImage2D(GL_TEXTURE_2D,/* 纹理目标(Target)*/
-        0,        /*Mipmap的级别, 0表示基本级别 */
-        GL_RGB,   /*纹理储存格式 */
-        texWidth,
-        texHeight,
-        0,        /*历史遗留问题,必须为0 */
-        GL_RGB,   /*原图的格式和数据类型,用RGB加载image */
-        GL_UNSIGNED_BYTE,
-        image);   /*图像数据buffer */
-    glGenerateMipmap(GL_TEXTURE_2D);
-    SOIL_free_image_data(image);
-
-    return texture;
-}
 
 /*主程序：坐标系统变换
  * 1. 通过宏控制，画1个或者是同时10个旋转的立方体
@@ -273,44 +231,52 @@ int main(int argc, char *argv[])
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);//四个参数RGBA,范围都是[0.0,1.0]
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); /*开启深度测试后，需clear深度buffer*/
 
-        //step2: 启动Shader-program
-        containerShader.Use();
-        GLint objectColorLoc = glGetUniformLocation(containerShader.GetProgram(), "objectColor");
-        GLint lightColorLoc = glGetUniformLocation(containerShader.GetProgram(), "lightColor");
+
+// ====================== 下述为light  ====================== 
+         //step2: 启动light-Shader-program
+        lightShader.Use();
+        GLint objectColorLoc = glGetUniformLocation(lightShader.GetProgram(), "objectColor");
+        GLint lightColorLoc = glGetUniformLocation(lightShader.GetProgram(), "lightColor");
+        GLint lightPosLoc = glGetUniformLocation(lightShader.GetProgram(), "lightPos");
         glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); // 物体rgb颜色
         glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);  // 光照rgb颜色
+        glUniform3f(lightPosLoc,lightPos.x,lightPos.y,lightPos.z);
 
-        /*step3:  传递MVP矩阵给shader*/
+        //step3:  传递MVP矩阵给light-shader
         /*MVP 变换: V-clip = M-projection * M-view * M-model * V-local */
         glm::mat4  view(1.0), projection(1.0); /*初始化为单位矩阵和radians 都非常重要*/
         view = camera.GetViewMatrix();
         projection = glm::perspective(camera.GetZoom(), static_cast<GLfloat>(WIDTH) / HEIGHT, 0.1f, 100.0f);
-
-        GLint modelLoc = glGetUniformLocation(containerShader.GetProgram(), "model");
-        GLint viewLoc = glGetUniformLocation(containerShader.GetProgram(), "view");
-        GLint projLoc = glGetUniformLocation(containerShader.GetProgram(), "projection");
+        GLint modelLoc = glGetUniformLocation(lightShader.GetProgram(), "model");
+        GLint viewLoc = glGetUniformLocation(lightShader.GetProgram(), "view");
+        GLint projLoc = glGetUniformLocation(lightShader.GetProgram(), "projection");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        /*step4: 渲染绘制*/
+        //step4: 渲染绘制
         glBindVertexArray(containerVAO);/* 绑定VAO*/
         glm::mat4 model(1.0);
 
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);//解绑VAO
-// ====================== 以上为container，下述为light
-        lightShader.Use();
-        modelLoc = glGetUniformLocation(lightShader.GetProgram(), "model");
-        viewLoc = glGetUniformLocation(lightShader.GetProgram(), "view");
-        projLoc = glGetUniformLocation(lightShader.GetProgram(), "projection");
 
+// ====================== 下述为container  ====================== 
+        //step2': 启动container-Shader-program
+        containerShader.Use();
+        modelLoc = glGetUniformLocation(containerShader.GetProgram(), "model");
+        viewLoc = glGetUniformLocation(containerShader.GetProgram(), "view");
+        projLoc = glGetUniformLocation(containerShader.GetProgram(), "projection");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+        //step3': 传递MVP矩阵给container-shader
         model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        
+        //step4': 渲染绘制
         // Draw the light object (using light's vertex attributes)
         glBindVertexArray(lightVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
