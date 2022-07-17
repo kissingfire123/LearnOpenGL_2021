@@ -25,10 +25,13 @@ public:
 	GLuint GetProgram() const;
 	 
 	void Use();
+
+    void SetVec3f(const GLchar *varName, const GLfloat* vec3fData);
+
+    void SetMat4(const GLchar *varName, const GLfloat* mat4Data);
 };
  
-Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
-{
+Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath){
 	/*step 1.read vertex data from file*/
 	std::string vertexCode;
 	std::string fragmentCode;
@@ -37,8 +40,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	// make sure the ifstream can throw exception  
 	vShaderFile.exceptions(std::ifstream::badbit);
 	fShaderFile.exceptions(std::ifstream::badbit);
-	try
-	{
+	try{
 		vShaderFile.open(vertexPath);
         assert(vShaderFile.good());
 		fShaderFile.open(fragmentPath);
@@ -52,8 +54,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 		vertexCode = vShaderStream.str();
 		fragmentCode = fShaderStream.str();
 	}
-	catch (std::ifstream::failure &)
-	{
+	catch (std::ifstream::failure &){
 		std::cout << "ERROR::Shader::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
 	}
 	const GLchar * vShaderCode = vertexCode.c_str();
@@ -70,8 +71,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	glCompileShader(vertex);
 	// if has compile error, get and print
 	glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
+	if (!success){
 		glGetShaderInfoLog(vertex, 512, NULL, infoLog);
 		std::cout << "ERROR:SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
@@ -83,8 +83,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	glCompileShader(fragment);
     // if has compile error, get and print 
 	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
+	if (!success){
 		glGetShaderInfoLog(fragment, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
@@ -96,8 +95,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	glLinkProgram(this->Program);
     // if has link error, get and print  
 	glGetProgramiv(this->Program, GL_LINK_STATUS, &success);
-	if (!success)
-	{
+	if (!success){
 		glGetProgramInfoLog(this->Program, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
 	}
@@ -108,14 +106,22 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 }
 
 /*give Program-ID to operate uniform*/
-GLuint Shader::GetProgram() const
-{
+GLuint Shader::GetProgram() const{
 	return this->Program;
 }
 
 /*use the shader program in main-Loop*/
-void Shader::Use()
-{
+void Shader::Use(){
 	glUseProgram(this->Program);
+}
+
+void Shader::SetVec3f(const GLchar *varName, const GLfloat* vec3fData) {
+    GLint varLoc = glGetUniformLocation(this->Program, varName);
+    glUniform3f(varLoc,  vec3fData[0], vec3fData[1], vec3fData[2]);
+}
+
+void Shader::SetMat4(const GLchar *varName, const GLfloat* mat4Data) {
+    GLint varLoc = glGetUniformLocation(this->Program, varName);
+    glUniformMatrix4fv(varLoc, 1, GL_FALSE, mat4Data);
 }
 #endif

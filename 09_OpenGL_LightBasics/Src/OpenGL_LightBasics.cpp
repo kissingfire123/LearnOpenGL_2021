@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
     };
 
     // Light attributes
-    glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+    glm::vec3 lightPos(1.2f, 0.6f, 1.5f);
 
     GLuint VBO , containerVAO , lightVAO;
     GLuint EBO = GL_INVALID_VALUE;
@@ -236,45 +236,38 @@ int main(int argc, char *argv[])
          //step2: 启动light-Shader-program
         lightShader.Use();
 
-        GLint modelLoc = glGetUniformLocation(lightShader.GetProgram(), "model");
-        GLint viewLoc = glGetUniformLocation(lightShader.GetProgram(), "view");
-        GLint projLoc = glGetUniformLocation(lightShader.GetProgram(), "projection");
-
         //step3 : 传递MVP矩阵给light-shader  (在本场景中: light和container的view和projection是共用的)
         /*MVP 变换: V-clip = M-projection * M-view * M-model * V-local */
         glm::mat4  model(1.0), view(1.0), projection(1.0); /*初始化为单位矩阵和 radians 都非常重要*/
+        lightPos = glm::vec3(glm::sin(currentFrame),0.6f,glm::cos(currentFrame));
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f));
         view = camera.GetViewMatrix();
         projection = glm::perspective(camera.GetZoom(), static_cast<GLfloat>(WIDTH) / HEIGHT, 0.1f, 100.0f);
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        lightShader.SetMat4("model",glm::value_ptr(model));
+        lightShader.SetMat4("view", glm::value_ptr(view));
+        lightShader.SetMat4("projection", glm::value_ptr(projection));
 
         //step4: 渲染绘制
         glBindVertexArray(lightVAO);/* 绑定VAO*/
-      
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);//解绑VAO
 
 // ====================== 下述为container  ====================== 
         //step2': 启动container-Shader-program
         containerShader.Use();
-        GLint objectColorLoc = glGetUniformLocation(containerShader.GetProgram(), "objectColor");
-        GLint lightColorLoc = glGetUniformLocation(containerShader.GetProgram(), "lightColor");
-        GLint lightPosLoc = glGetUniformLocation(containerShader.GetProgram(), "lightPos");
-        glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); // 物体rgb颜色
-        glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);  // 光照rgb颜色
-        glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+
+        containerShader.SetVec3f("objectColor",glm::value_ptr(glm::vec3(1.0f,0.5f,0.31f))); //  物体rgb颜色
+        containerShader.SetVec3f("lightColor", glm::value_ptr(glm::vec3(1.0f, 1.0f, 1.0f))); // 光照rgb颜色
+        containerShader.SetVec3f("lightPos", glm::value_ptr(lightPos));
+        containerShader.SetVec3f("viewPos",glm::value_ptr(camera.GetPosition()));/*view position 用于高光计算*/
 
         //step3' : 传递MVP矩阵给container-shader  (在本场景中: light和container的view和projection是共用的)
         model = glm::mat4(1.0f);
-        modelLoc = glGetUniformLocation(containerShader.GetProgram(), "model");
-        viewLoc = glGetUniformLocation(containerShader.GetProgram(), "view");
-        projLoc = glGetUniformLocation(containerShader.GetProgram(), "projection");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        containerShader.SetMat4("model", glm::value_ptr(model));
+        containerShader.SetMat4("view", glm::value_ptr(view));
+        containerShader.SetMat4("projection", glm::value_ptr(projection));
+
 
         //step4': 渲染绘制
         // Draw the light object (using light's vertex attributes)
@@ -300,8 +293,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
-
-
 
     /*键盘控制,enable同一时间多键位生效*/
     if (key >= 0 && key < 1024) {

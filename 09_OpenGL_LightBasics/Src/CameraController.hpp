@@ -121,6 +121,9 @@ public:
 	void SetZoom(GLfloat zoomVal) {
 		this->Zoom = zoomVal;
 	}
+    glm::vec3 GetPosition() {
+        return this->Position;
+    }
 private:
     // Calculates the front vector from the Camera's (updated) Eular Angles
     void updateCameraVectors()
