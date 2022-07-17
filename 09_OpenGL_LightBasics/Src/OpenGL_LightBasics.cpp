@@ -235,53 +235,52 @@ int main(int argc, char *argv[])
 // ====================== 下述为light  ====================== 
          //step2: 启动light-Shader-program
         lightShader.Use();
-        GLint objectColorLoc = glGetUniformLocation(lightShader.GetProgram(), "objectColor");
-        GLint lightColorLoc = glGetUniformLocation(lightShader.GetProgram(), "lightColor");
-        GLint lightPosLoc = glGetUniformLocation(lightShader.GetProgram(), "lightPos");
-        glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); // 物体rgb颜色
-        glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);  // 光照rgb颜色
-        glUniform3f(lightPosLoc,lightPos.x,lightPos.y,lightPos.z);
 
-        //step3:  传递MVP矩阵给light-shader
-        /*MVP 变换: V-clip = M-projection * M-view * M-model * V-local */
-        glm::mat4  view(1.0), projection(1.0); /*初始化为单位矩阵和radians 都非常重要*/
-        view = camera.GetViewMatrix();
-        projection = glm::perspective(camera.GetZoom(), static_cast<GLfloat>(WIDTH) / HEIGHT, 0.1f, 100.0f);
         GLint modelLoc = glGetUniformLocation(lightShader.GetProgram(), "model");
         GLint viewLoc = glGetUniformLocation(lightShader.GetProgram(), "view");
         GLint projLoc = glGetUniformLocation(lightShader.GetProgram(), "projection");
+
+        //step3 : 传递MVP矩阵给light-shader  (在本场景中: light和container的view和projection是共用的)
+        /*MVP 变换: V-clip = M-projection * M-view * M-model * V-local */
+        glm::mat4  model(1.0), view(1.0), projection(1.0); /*初始化为单位矩阵和 radians 都非常重要*/
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(0.2f));
+        view = camera.GetViewMatrix();
+        projection = glm::perspective(camera.GetZoom(), static_cast<GLfloat>(WIDTH) / HEIGHT, 0.1f, 100.0f);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         //step4: 渲染绘制
-        glBindVertexArray(containerVAO);/* 绑定VAO*/
-        glm::mat4 model(1.0);
-
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glBindVertexArray(lightVAO);/* 绑定VAO*/
+      
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);//解绑VAO
 
 // ====================== 下述为container  ====================== 
         //step2': 启动container-Shader-program
         containerShader.Use();
+        GLint objectColorLoc = glGetUniformLocation(containerShader.GetProgram(), "objectColor");
+        GLint lightColorLoc = glGetUniformLocation(containerShader.GetProgram(), "lightColor");
+        GLint lightPosLoc = glGetUniformLocation(containerShader.GetProgram(), "lightPos");
+        glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f); // 物体rgb颜色
+        glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);  // 光照rgb颜色
+        glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+
+        //step3' : 传递MVP矩阵给container-shader  (在本场景中: light和container的view和projection是共用的)
+        model = glm::mat4(1.0f);
         modelLoc = glGetUniformLocation(containerShader.GetProgram(), "model");
         viewLoc = glGetUniformLocation(containerShader.GetProgram(), "view");
         projLoc = glGetUniformLocation(containerShader.GetProgram(), "projection");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        //step3': 传递MVP矩阵给container-shader
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(0.2f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        
         //step4': 渲染绘制
         // Draw the light object (using light's vertex attributes)
-        glBindVertexArray(lightVAO);
+        glBindVertexArray(containerVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
-
 
         /*渲染结束，交换显存相关的buffer，类似刷新显示功能*/
         glfwSwapBuffers(window);
@@ -318,14 +317,14 @@ void do_movement()
 {
     // 摄像机控制
     //GLfloat cameraSpeed = 5.0f * g_deltaTime;
-    if (g_keys[GLFW_KEY_W])
+    if (g_keys[GLFW_KEY_W] || g_keys[GLFW_KEY_UP])
         camera.ProcessKeyboard(Camera_Movement::FORWARD, g_deltaTime);
     //g_cameraPos += cameraSpeed * g_cameraFront;
-    if (g_keys[GLFW_KEY_S])
+    if (g_keys[GLFW_KEY_S] || g_keys[GLFW_KEY_DOWN])
         camera.ProcessKeyboard(Camera_Movement::BACKWARD, g_deltaTime);
-    if (g_keys[GLFW_KEY_A])
+    if (g_keys[GLFW_KEY_A] || g_keys[GLFW_KEY_LEFT])
         camera.ProcessKeyboard(Camera_Movement::LEFT, g_deltaTime);
-    if (g_keys[GLFW_KEY_D])
+    if (g_keys[GLFW_KEY_D] || g_keys[GLFW_KEY_RIGHT])
         camera.ProcessKeyboard(Camera_Movement::RIGHT, g_deltaTime);
 }
 
